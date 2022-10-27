@@ -1,0 +1,110 @@
+version: '3'
+services:
+    redis:
+        image: redis:4.0.9
+        restart: always
+        ports:
+            - "6379:6379" #from host port:6379 to container port:6379
+
+    mysql:
+        image: mysql/mysql-server:5.7
+        restart: always
+        ports:
+            - "3306:3306"                   #from host port:3306 to container port:3306
+        environment:
+            MYSQL_USER: airflow             # add airflow user
+            MYSQL_PASSWORD: airflow        # setting airflow password
+            MYSQL_DATABASE: airflow    # setting new database
+        volumes:
+            - "./mysql-data/data:/var/lib/mysql" # Data Volumes mysql data
+            - "./mysql-data/init:/docker-entrypoint-initdb.d/"  # Data Volumes mysql init sql script
+        command:
+            - --explicit_defaults_for_timestamp=true
+
+    webserver:
+        image: ubuntu/docker-airflow:1.10.9
+        restart: always
+        depends_on:
+            - mysql
+            - redis
+        environment:
+            - EXECUTOR=CeleryExecutor # EXECUTOR method
+            - FERNET_KEY=n0-NSunnVW7Y9pqs7O3LFbl5KiBqcIfEOoYgWIZX09g=  # Setting connection Secret key (Secret key to save connection passwords in the db)
+        volumes:
+            - ./dags:/home/airflow/dags   # Data Volumes dags file folder
+            - ./analysis:/home/airflow/analysis # Data Volumes init container analysis script folder
+            - ./logs:/home/airflow/logs   # Data Volumes airflow logs folder
+            - ./venv:/home/airflow/venv     # Data Volumes analysis lib folder
+            - ./config:/home/airflow/config   # Data Volumes config file folder
+            - ./db:/home/airflow/db         # Data Volumes db file folder
+            - ./mysql-data/data:/home/airflow/mysql-data/data # Data Volumes mysql-data/data file folder
+        ports:
+            - "8080:8080"                        #from host port:8080 to container port:8080
+        command: webserver
+
+    flower:
+        image: ubuntu/docker-airflow:1.10.9
+        restart: always
+        depends_on:
+            - redis
+            - mysql
+            - webserver
+        environment:
+            - EXECUTOR=CeleryExecutor          # EXECUTOR method
+        volumes:
+            - ./dags:/home/airflow/dags   # Data Volumes dags file folder
+            - ./analysis:/home/airflow/analysis # Data Volumes init container analysis script folder
+            - ./logs:/home/airflow/logs   # Data Volumes airflow logs folder
+            - ./venv:/home/airflow/venv     # Data Volumes analysis lib folder
+            - ./config:/home/airflow/config   # Data Volumes config file folder
+            - ./db:/home/airflow/db         # Data Volumes db file folder
+            - ./mysql-data/data:/home/airflow/mysql-data/data # Data Volumes mysql-data/data file folder
+        ports:
+            - "5555:5555"               #from host port:5555 to container port:5555
+        command: flower
+
+    scheduler:
+        image: ubuntu/docker-airflow:1.10.9
+        restart: always
+        depends_on:
+            - mysql
+            - redis
+            - webserver
+        environment:
+            - EXECUTOR=CeleryExecutor     # EXECUTOR method
+            - FERNET_KEY=n0-NSunnVW7Y9pqs7O3LFbl5KiBqcIfEOoYgWIZX09g=  # Setting connection Secret key (Secret key to save connection passwords in the db)
+        volumes:
+            - ./dags:/home/airflow/dags   # Data Volumes dags file folder
+            - ./analysis:/home/airflow/analysis # Data Volumes init container analysis script folder
+            - ./logs:/home/airflow/logs   # Data Volumes airflow logs folder
+            - ./venv:/home/airflow/venv     # Data Volumes analysis lib folder
+            - ./config:/home/airflow/config   # Data Volumes config file folder
+            - ./db:/home/airflow/db         # Data Volumes db file folder
+            - ./mysql-data/data:/home/airflow/mysql-data/data # Data Volumes mysql-data/data file folder
+        command: scheduler
+
+    worker:
+        image: ubuntu/docker-airflow:1.10.9
+        restart: always
+        depends_on:
+            - mysql
+            - redis
+            - scheduler
+            - webserver
+        environment:
+            - EXECUTOR=CeleryExecutor   # EXECUTOR method
+            - FERNET_KEY=n0-NSunnVW7Y9pqs7O3LFbl5KiBqcIfEOoYgWIZX09g=  # Setting connection Secret key (Secret key to save connection passwords in the db)
+        volumes:
+            - ./dags:/home/airflow/dags   # Data Volumes dags file folder
+            - ./analysis:/home/airflow/analysis # Data Volumes init container analysis script folder
+            - ./logs:/home/airflow/logs   # Data Volumes airflow logs folder
+            - ./venv:/home/airflow/venv     # Data Volumes analysis lib folder
+            - ./config:/home/airflow/config   # Data Volumes config file folder
+            - ./db:/home/airflow/db         # Data Volumes db file folder
+            - ./mysql-data/data:/home/airflow/mysql-data/data # Data Volumes mysql-data/data file folder
+        command: worker
+
+
+
+
+
