@@ -48,14 +48,13 @@ Use Airflow to author workflows as directed acyclic graphs (DAGs) of tasks. The 
 Build ubuntu/docker-airflow:1.10.9 image
 
 ```bash
-git clone git@tdc.techdesignlink.com:Aiken/airflow-infrastructurecode.git
+git clone git@github.com:surtho3764/docker-airflow-infrastructurecode.git
 cp airflow-infrastructurecode -r target_dir
 cd ./target_dir/airflow-infrastructurecode
 docker build -t ubuntu/docker-airflow:1.10.9 .
 ```
 
 ## Usage
-
 docker-airflow runs Airflow with 
 LocalExecutor :dev
 ```bash
