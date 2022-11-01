@@ -55,7 +55,7 @@ docker build -t ubuntu/docker-airflow:1.10.9 .
 ```
 
 IF Exits images/ubuntu_docker-airflow_1.10.9.ram file
-Load ubuntu_docker-airflow_1.10.9.ram file
+Load ubuntu_docker-airflow_1.10.9.ram file to ubuntu/docker-airflow:1.10.9 image
 
 ```bash
 sudo docker load --input ./images/ubuntu_docker-airflow_1.10.9.ram
